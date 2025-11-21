@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: photos-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: photos-backend
+  template:
+    metadata:
+      labels:
+        app: photos-backend
+    spec:
+      containers:
+      - name: backend
+        image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/photos-backend:latest
+        ports:
+        - containerPort: 4000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: photos-db-secret
+              key: database_url
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: photos-backend
+spec:
+  type: ClusterIP
+  ports:
+  - port: 4000
+    targetPort: 4000
+  selector:
+    app: photos-backend
+
