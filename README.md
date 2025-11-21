@@ -1,1 +1,1 @@
-# music_player_by_jaswanth
+# Photo sharing app by jaswanth
