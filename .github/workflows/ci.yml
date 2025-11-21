@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry-type: public
+
+      - name: Build backend image
+        run: |
+          docker build -t photos-backend:latest ./services/backend
+          docker tag photos-backend:latest $ECR_REGISTRY/photos-backend:latest
+
+      - name: Push backend image
+        run: |
+          docker push $ECR_REGISTRY/photos-backend:latest
+
+      - name: Scan backend image (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: $ECR_REGISTRY/photos-backend:latest
+
